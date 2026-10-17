@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rechteck-Puzzle 24×24</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Rechteck-Puzzle</h1>
+    <div class="bar">
+      <span id="info"></span>
+      <span id="timer">00:00</span>
+      <select id="level" autocomplete="off">
+        <option value="easy" selected>Leicht (18×18)</option>
+        <option value="medium">Mittel (21×21)</option>
+        <option value="hard">Schwer (24×24)</option>
+      </select>
+      <button id="newGame">Neues Spiel</button>
+      <button id="reset">Zurücksetzen</button>
+      <button id="solve">Lösen</button>
+      <button id="showScores">Highscores</button>
+    </div>
+    <p id="msg" hidden><span id="msgText"></span> <span id="nameForm" hidden><input id="name" maxlength="20" placeholder="Dein Name"> <button id="saveScore">Speichern</button></span></p>
+    <p class="hint">Teile per Maus auf das Feld ziehen (Überlappungen werden schraffiert) · <kbd>R</kbd> / Rechtsklick / Mausrad dreht das Teil · Platzierte Teile lassen sich wieder anfassen</p>
+  </header>
+  <main>
+    <div id="board"></div>
+    <div id="tray"></div>
+  </main>
+  <div id="scoreModal" hidden>
+    <div>
+      <div id="scores"></div>
+      <button id="closeScores">Schließen</button>
+    </div>
+  </div>
+  <script src="game.js"></script>
+</body>
+</html>

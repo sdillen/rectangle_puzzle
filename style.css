@@ -1,0 +1,76 @@
+:root { --c: 24px; --n: 24; }
+* { box-sizing: border-box; }
+body {
+  margin: 0; font-family: system-ui, sans-serif; background: #1e2430; color: #e8ecf3;
+  user-select: none; -webkit-user-select: none;
+}
+header { text-align: center; padding: 12px 16px 0; }
+h1 { margin: 0 0 8px; font-size: 1.5rem; }
+.bar { display: flex; gap: 16px; justify-content: center; align-items: center; }
+#timer { font-variant-numeric: tabular-nums; }
+button {
+  background: #4c8bf5; color: #fff; border: 0; border-radius: 6px;
+  padding: 6px 14px; font-size: 1rem; cursor: pointer;
+}
+select { font-size: 1rem; padding: 5px 8px; border-radius: 6px; }
+button:hover { background: #3a74d8; }
+.hint { font-size: .85rem; color: #9aa5b8; margin: 8px 0 0; }
+kbd { background: #333c4d; padding: 1px 6px; border-radius: 4px; }
+
+main { display: flex; flex-wrap: wrap; gap: 24px; justify-content: center; align-items: flex-start; padding: 16px; }
+
+#board {
+  position: relative; flex: none;
+  width: calc(var(--c) * var(--n)); height: calc(var(--c) * var(--n));
+  background-color: #2b3345;
+  background-image:
+    linear-gradient(#3a445a 1px, transparent 1px),
+    linear-gradient(90deg, #3a445a 1px, transparent 1px);
+  background-size: var(--c) var(--c);
+  outline: 2px solid #5a6785;
+}
+#tray {
+  display: flex; flex-wrap: wrap; gap: 8px; align-content: flex-start; align-items: flex-start;
+  width: min(560px, 100%); min-height: 200px; padding: 8px;
+  background: #262d3d; border-radius: 8px;
+}
+
+.piece {
+  position: relative; flex: none; cursor: grab;
+  width: calc(var(--c) * var(--w)); height: calc(var(--c) * var(--h));
+  border: 2px solid rgba(0, 0, 0, .35); border-radius: 3px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 600; color: rgba(0, 0, 0, .65);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .35);
+  overflow: hidden;
+}
+#board .piece { position: absolute; left: calc(var(--c) * var(--x)); top: calc(var(--c) * var(--y)); }
+.piece.ghost { position: fixed; z-index: 10; pointer-events: none; opacity: .85; cursor: grabbing; box-shadow: 0 6px 16px rgba(0, 0, 0, .5); }
+.preview { position: absolute; pointer-events: none; border-radius: 3px;
+  left: calc(var(--c) * var(--x)); top: calc(var(--c) * var(--y));
+  width: calc(var(--c) * var(--w)); height: calc(var(--c) * var(--h));
+}
+.preview.ok { background: rgba(80, 220, 120, .35); outline: 2px solid #50dc78; }
+.preview.bad { background: rgba(240, 80, 80, .3); outline: 2px solid #f05050; }
+
+#msg { margin: 10px auto 0; padding: 8px 16px; width: fit-content; background: #2e7d4f; border-radius: 6px; font-weight: 600; }
+#msg[hidden] { display: none; }
+.preview.warn { background: rgba(250, 190, 60, .3); outline: 2px solid #fabe3c; }
+.hatch {
+  position: absolute; pointer-events: none; z-index: 5;
+  left: calc(var(--c) * var(--x)); top: calc(var(--c) * var(--y));
+  width: calc(var(--c) * var(--w)); height: calc(var(--c) * var(--h));
+  background: repeating-linear-gradient(45deg, rgba(200, 30, 30, .85) 0 4px, rgba(255, 255, 255, .85) 4px 8px);
+  outline: 1px solid #a01010;
+}
+#msg input { font-size: 1rem; padding: 4px 8px; border-radius: 6px; border: 0; margin-left: 8px; }
+#scoreModal { position: fixed; inset: 0; background: rgba(0, 0, 0, .65); display: flex; align-items: center; justify-content: center; z-index: 20; }
+#scoreModal[hidden] { display: none; }
+#scoreModal > div { background: #2b3345; padding: 20px 28px; border-radius: 12px; text-align: center; max-height: 90vh; overflow: auto; }
+#scores { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-bottom: 16px; }
+#scores > div { background: #262d3d; border-radius: 8px; padding: 10px 16px; min-width: 180px; text-align: left; }
+#scores h3 { margin: 0 0 6px; font-size: 1rem; }
+#scores ol { margin: 0; padding-left: 22px; font-variant-numeric: tabular-nums; }
+#scores li span { float: right; margin-left: 12px; }
+#scores .new { color: #50dc78; font-weight: 700; }
+#scores .none { list-style: none; margin-left: -22px; color: #9aa5b8; }
