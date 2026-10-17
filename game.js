@@ -40,12 +40,19 @@ function generate(n, count, min) {
   return rects;
 }
 
+// Zellgröße an die Bildschirmbreite anpassen (Smartphones)
+function fitCell() {
+  const lv = LEVELS[$('level').value];
+  const avail = document.documentElement.clientWidth - 24;
+  CELL = Math.max(10, Math.min(lv.cell, Math.floor(avail / lv.n)));
+  document.documentElement.style.setProperty('--n', lv.n);
+  document.documentElement.style.setProperty('--c', CELL + 'px');
+}
+
 function newGame() {
   const lv = LEVELS[$('level').value];
   N = lv.n;
-  CELL = lv.cell;
-  document.documentElement.style.setProperty('--n', N);
-  document.documentElement.style.setProperty('--c', CELL + 'px');
+  fitCell();
   const list = generate(N, lv.pieces, lv.min);
   list.sort((a, b) => b.w * b.h - a.w * a.h);
   pieces = list.map((r, i) => ({
@@ -229,15 +236,19 @@ function overlapsAt(p, x, y) {
 }
 
 function startDrag(e, p) {
-  if (e.button === 2) return;
+  if (e.button === 2 || drag) return;
   e.preventDefault();
+  const from = { x: p.x, y: p.y };
   p.x = p.y = null; // beim Anfassen vom Feld lösen
   const ghost = pieceEl(p);
   ghost.classList.add('ghost');
   document.body.appendChild(ghost);
   const preview = document.createElement('div');
   preview.className = 'preview';
-  drag = { piece: p, ghost, preview, gx: 0, gy: 0, valid: false, cx: e.clientX, cy: e.clientY };
+  drag = {
+    piece: p, ghost, preview, gx: 0, gy: 0, valid: false, cx: e.clientX, cy: e.clientY,
+    id: e.pointerId, touch: e.pointerType !== 'mouse', from, sx: e.clientX, sy: e.clientY, moved: false,
+  };
   render();
   moveDrag(e.clientX, e.clientY);
 }
@@ -245,7 +256,10 @@ function startDrag(e, p) {
 function moveDrag(cx, cy) {
   const d = drag, p = d.piece;
   d.cx = cx; d.cy = cy;
+  if (Math.hypot(cx - d.sx, cy - d.sy) > 6) d.moved = true;
   const gw = p.w * CELL, gh = p.h * CELL;
+  // Bei Touch das Teil oberhalb des Fingers halten, damit es sichtbar bleibt
+  if (d.touch) cy -= gh / 2 + 28;
   d.ghost.style.setProperty('--w', p.w);
   d.ghost.style.setProperty('--h', p.h);
   d.ghost.textContent = `${p.w}×${p.h}`;
@@ -324,15 +338,23 @@ function playClick() {
 function endDrag() {
   const d = drag;
   if (!d) return;
-  if (d.valid) { d.piece.x = d.gx; d.piece.y = d.gy; playClick(); }
+  const p = d.piece;
+  if (!d.moved) {
+    // Antippen: Teil aus dem Vorrat drehen bzw. platziertes Teil zurücklegen
+    if (d.from.x === null) [p.w, p.h] = [p.h, p.w];
+    else { p.x = d.from.x; p.y = d.from.y; }
+  } else if (d.valid) { d.piece.x = d.gx; d.piece.y = d.gy; playClick(); }
   d.ghost.remove();
   drag = null;
   render();
 }
 
-window.addEventListener('pointermove', (e) => drag && moveDrag(e.clientX, e.clientY));
-window.addEventListener('pointerup', endDrag);
-window.addEventListener('pointercancel', endDrag);
+window.addEventListener('pointermove', (e) => drag && e.pointerId === drag.id && moveDrag(e.clientX, e.clientY));
+window.addEventListener('pointerup', (e) => drag && e.pointerId === drag.id && endDrag());
+window.addEventListener('pointercancel', (e) => drag && e.pointerId === drag.id && endDrag());
+// zweiter Finger während des Ziehens dreht das Teil
+window.addEventListener('pointerdown', (e) => { if (drag && e.pointerId !== drag.id && e.pointerType !== 'mouse') rotate(); });
+window.addEventListener('resize', () => { if (!drag) { fitCell(); render(); } });
 window.addEventListener('keydown', (e) => { if (e.key === 'r' || e.key === 'R') rotate(); });
 window.addEventListener('contextmenu', (e) => { if (drag) { e.preventDefault(); rotate(); } });
 window.addEventListener('wheel', (e) => { if (drag) rotate(); }, { passive: true });

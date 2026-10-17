@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
   <title>Rechteck-Puzzle 24×24</title>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -23,7 +23,8 @@
       <button id="showScores">Highscores</button>
     </div>
     <p id="msg" hidden><span id="msgText"></span> <span id="nameForm" hidden><input id="name" maxlength="20" placeholder="Dein Name"> <button id="saveScore">Speichern</button></span></p>
-    <p class="hint">Teile per Maus auf das Feld ziehen (Überlappungen werden schraffiert) · <kbd>R</kbd> / Rechtsklick / Mausrad dreht das Teil · Platzierte Teile lassen sich wieder anfassen</p>
+    <p class="hint hint-touch">Teil mit dem Finger ziehen (es schwebt über dem Finger) · Teil im Vorrat antippen oder beim Ziehen mit einem zweiten Finger tippen dreht es · Platzierte Teile lassen sich wieder anfassen</p>
+    <p class="hint hint-mouse">Teile per Maus auf das Feld ziehen (Überlappungen werden schraffiert) · <kbd>R</kbd> / Rechtsklick / Mausrad dreht das Teil · Platzierte Teile lassen sich wieder anfassen</p>
   </header>
   <main>
     <div id="board"></div>
