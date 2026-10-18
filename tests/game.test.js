@@ -211,3 +211,42 @@ describe('Highscores', () => {
     expect(list.map((s) => s.ms)).toEqual([...list.map((s) => s.ms)].sort((x, y) => x - y));
   });
 });
+
+describe('Deadlock-Erkennung', () => {
+  // Setzt alle Teile außer den letzten `keep` an ihre Lösungsposition
+  const place = (g, keep) => g(`(() => {
+    pieces.forEach((p, i) => { if (i < pieces.length - ${keep}) ({ x: p.x, y: p.y, w: p.w, h: p.h } = p.sol); else p.x = p.y = null; });
+  })()`);
+
+  it('erkennt keine Sackgasse bei korrekter Teillösung', () => {
+    place(game.g, 4);
+    expect(game.g('isDeadlocked()')).toBe(false);
+  });
+
+  it('erkennt eine Sackgasse, wenn ein platziertes Teil falsch liegt', () => {
+    const { g } = game;
+    place(g, 4);
+    // ein Lösungsteil an eine Stelle verschieben, an der es die Restfläche zerstört
+    const bad = g(`(() => {
+      const p = pieces.filter((q) => q.x !== null).pop();
+      const free = [];
+      for (let y = 0; y + p.h <= N; y++) for (let x = 0; x + p.w <= N; x++)
+        if ((x !== p.sol.x || y !== p.sol.y) && !pieces.some((q) => q !== p && q.x !== null && intersect({ x, y, w: p.w, h: p.h }, q))) free.push([x, y]);
+      return free.some(([x, y]) => { [p.x, p.y] = [x, y]; return isDeadlocked(); });
+    })()`);
+    expect(bad).toBe(true);
+  });
+
+  it('prüft erst ab DEADLOCK_AT übrigen Teilen', () => {
+    const { g } = game;
+    g(`pieces.forEach((p) => { p.x = p.y = null; })`);
+    expect(g('isDeadlocked()')).toBe(false);
+  });
+
+  it('zeigt die Warnung im Spiel an', () => {
+    const { g, window } = game;
+    place(g, 4);
+    g('render()');
+    expect(window.document.getElementById('deadlock').hidden).toBe(true);
+  });
+});
