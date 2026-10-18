@@ -1,7 +1,8 @@
 const LEVELS = {
   easy:   { n: 18, cell: 32, pieces: 8,  min: 3 },
   medium: { n: 21, cell: 27, pieces: 13, min: 2 },
-  hard:   { n: 24, cell: 24, pieces: 20, min: 2 },
+  hard:   { n: 24, cell: 24, pieces: 20, min: 2, noSquares: true, dominoes: 2 },
+  expert: { n: 27, cell: 22, pieces: 30, min: 2, noSquares: true, dominoes: 2 },
 };
 let N = 24;
 let CELL = 24;
@@ -40,7 +41,25 @@ function parseSeed() {
 const rnd = (a, b) => a + Math.floor(random() * (b - a + 1));
 
 // Teilt zufällig (nach Fläche gewichtet) so lange Rechtecke, bis die Zielanzahl erreicht ist.
-function generate(n, count, min) {
+// Ohne Quadrate: Rechtecke mit Mindestkante `min`; ein 2×2-Quadrat wird in zwei 1×2-Dominos geteilt,
+// davon höchstens `dominoes` Paare. Die Teileanzahl bleibt immer genau `count`.
+function generate(n, count, min, noSquares = false, dominoes = 0) {
+  if (!noSquares) return split(n, count, min);
+  for (;;) {
+    const d = rnd(0, dominoes);
+    const rects = split(n, count - d, min);
+    const small = rects.filter((r) => r.w === 2 && r.h === 2);
+    if (small.length !== d || rects.some((r) => r.w === r.h && r.w !== 2)) continue;
+    return rects.flatMap((r) => {
+      if (r.w !== 2 || r.h !== 2) return [r];
+      return random() < 0.5
+        ? [{ ...r, w: 1 }, { ...r, x: r.x + 1, w: 1 }]
+        : [{ ...r, h: 1 }, { ...r, y: r.y + 1, h: 1 }];
+    });
+  }
+}
+
+function split(n, count, min) {
   const rects = [{ x: 0, y: 0, w: n, h: n }];
   while (rects.length < count) {
     const cand = rects.filter((r) => r.w >= 2 * min || r.h >= 2 * min);
@@ -81,7 +100,7 @@ function newGame(sd = newSeed($('level').value)) {
   const lv = LEVELS[$('level').value];
   N = lv.n;
   fitCell();
-  const list = generate(N, lv.pieces, lv.min);
+  const list = generate(N, lv.pieces, lv.min, lv.noSquares, lv.dominoes);
   list.sort((a, b) => b.w * b.h - a.w * a.h);
   pieces = list.map((r, i) => ({
     id: i, w: r.w, h: r.h, x: null, y: null,
@@ -175,7 +194,7 @@ const fmt = (ms) => {
   return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
 };
 
-const LABELS = { easy: 'Leicht', medium: 'Mittel', hard: 'Schwer' };
+const LABELS = { easy: 'Leicht', medium: 'Mittel', hard: 'Schwer', expert: 'Sehr schwer' };
 const MAX_SCORES = 5;
 const esc = (s) => s.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
 
