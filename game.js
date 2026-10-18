@@ -397,6 +397,8 @@ $('share').addEventListener('click', async () => {
     else { await navigator.clipboard.writeText(url); $('share').textContent = 'Kopiert!'; setTimeout(() => { $('share').textContent = 'Teilen'; }, 1500); }
   } catch {}
 });
+// Beim Ziehen keine Browser-Gesten (Pull-to-Refresh, Wischen) auslösen
+window.addEventListener('touchmove', (e) => { if (drag) e.preventDefault(); }, { passive: false });
 $('reset').addEventListener('click', reset);
 $('solve').addEventListener('click', solve);
 $('showScores').addEventListener('click', () => showScores());

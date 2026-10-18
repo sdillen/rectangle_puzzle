@@ -1,5 +1,6 @@
 :root { --c: 24px; --n: 24; }
 * { box-sizing: border-box; }
+html { overscroll-behavior: none; }
 body {
   margin: 0; font-family: system-ui, sans-serif; background: #1e2430; color: #e8ecf3;
   user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
