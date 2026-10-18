@@ -461,8 +461,8 @@ $('share').addEventListener('click', async () => {
 });
 // Beim Ziehen keine Browser-Gesten (Pull-to-Refresh, Wischen) auslösen
 window.addEventListener('touchmove', (e) => { if (drag) e.preventDefault(); }, { passive: false });
-$('reset').addEventListener('click', reset);
-$('solve').addEventListener('click', solve);
+$('reset').addEventListener('click', () => { if (confirm('Alle Teile vom Feld nehmen?')) reset(); });
+$('solve').addEventListener('click', () => { if (confirm('Puzzle automatisch lösen?')) solve(); });
 $('showScores').addEventListener('click', () => showScores());
 $('closeScores').addEventListener('click', () => { $('scoreModal').hidden = true; });
 $('saveScore').addEventListener('click', saveScore);
