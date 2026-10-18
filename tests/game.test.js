@@ -36,30 +36,30 @@ describe('LEVELS', () => {
     expect(game.g('LEVELS')).toEqual({
       easy:   { n: 18, cell: 32, pieces: 8,  min: 3 },
       medium: { n: 21, cell: 27, pieces: 13, min: 2 },
-      hard:   { n: 24, cell: 24, pieces: 20, min: 2 },
+      hard:   { n: 24, cell: 24, pieces: 20, min: 2, noSquares: true, dominoes: 2 },
+      expert: { n: 27, cell: 22, pieces: 30, min: 2, noSquares: true, dominoes: 2 },
     });
   });
 });
 
 describe('generate', () => {
-  for (const level of ['easy', 'medium', 'hard']) {
+  for (const level of ['easy', 'medium', 'hard', 'expert']) {
     it(`erzeugt für Level "${level}" über viele Seeds immer genau pieces Teile`, () => {
       const { g } = game;
-      const { n, pieces, min } = g(`LEVELS.${level}`);
+      const { n, pieces, min, noSquares, dominoes } = g(`LEVELS.${level}`);
       for (let i = 0; i < 200; i++) {
-        const rects = g(`(() => { random = seeded('many-${level}-${i}'); return generate(${n}, ${pieces}, ${min}); })()`);
+        const rects = g(`(() => { random = seeded('many-${level}-${i}'); return generate(${n}, ${pieces}, ${min}, ${!!noSquares}, ${dominoes || 0}); })()`);
         expect(rects).toHaveLength(pieces);
         expect(rects.reduce((s, r) => s + r.w * r.h, 0)).toBe(n * n);
-        expect(rects.every((r) => Math.min(r.w, r.h) >= min)).toBe(true);
       }
     });
   }
 
-  for (const level of ['easy', 'medium', 'hard']) {
+  for (const level of ['easy', 'medium', 'hard', 'expert']) {
     it(`erzeugt für Level "${level}" eine lösbare Zerlegung des Quadrats`, () => {
       const { g } = game;
-      const { n, pieces, min } = g(`LEVELS.${level}`);
-      const rects = g(`(() => { random = seeded('gen-${level}'); return generate(${n}, ${pieces}, ${min}); })()`);
+      const { n, pieces, min, noSquares, dominoes } = g(`LEVELS.${level}`);
+      const rects = g(`(() => { random = seeded('gen-${level}'); return generate(${n}, ${pieces}, ${min}, ${!!noSquares}, ${dominoes || 0}); })()`);
 
       expect(rects).toHaveLength(pieces);
       expect(rects.reduce((s, r) => s + r.w * r.h, 0)).toBe(n * n);
@@ -68,11 +68,36 @@ describe('generate', () => {
         expect(r.y).toBeGreaterThanOrEqual(0);
         expect(r.x + r.w).toBeLessThanOrEqual(n);
         expect(r.y + r.h).toBeLessThanOrEqual(n);
-        expect(Math.min(r.w, r.h)).toBeGreaterThanOrEqual(min);
+        expect(Math.min(r.w, r.h)).toBeGreaterThanOrEqual(dominoes ? 1 : min);
       }
       for (let i = 0; i < rects.length; i++)
         for (let j = i + 1; j < rects.length; j++)
           expect(g(`intersect(${JSON.stringify(rects[i])}, ${JSON.stringify(rects[j])})`)).toBeNull();
+    });
+  }
+});
+
+describe('Stufen ohne Quadrate (hard, expert)', () => {
+  for (const level of ['hard', 'expert']) {
+    it(`"${level}": keine Quadrate, Streifen nur als 1×2`, () => {
+      const { g } = game;
+      const { n, pieces, min, noSquares, dominoes } = g(`LEVELS.${level}`);
+      let dominoSeen = 0;
+      for (let i = 0; i < 200; i++) {
+        const rects = g(`(() => { random = seeded('ns-${level}-${i}'); return generate(${n}, ${pieces}, ${min}, ${noSquares}, ${dominoes || 0}); })()`);
+        for (const r of rects) {
+          expect(r.w).not.toBe(r.h);
+          if (Math.min(r.w, r.h) === 1) { expect(r.w * r.h).toBe(2); dominoSeen++; }
+        }
+        expect(rects.filter((r) => r.w * r.h === 2).length).toBeLessThanOrEqual(2 * (dominoes || 0));
+      }
+      expect(dominoSeen).toBeGreaterThan(0);
+    });
+
+    it(`"${level}": gedrehte Teile im Spiel bleiben nicht quadratisch`, () => {
+      const gm = loadGame({ hash: `#${level}-abc123` });
+      expect(gm.g('seed')).toBe(`${level}-abc123`);
+      expect(gm.g('pieces.every((p) => p.w !== p.h)')).toBe(true);
     });
   }
 });
