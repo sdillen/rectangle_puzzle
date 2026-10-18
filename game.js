@@ -186,6 +186,7 @@ function render() {
   if (drag) board.appendChild(drag.preview);
   const filled = pieces.reduce((s, p) => s + (p.x !== null ? p.w * p.h : 0), 0);
   $('info').textContent = `${placed}/${pieces.length} Teile · ${Math.round((filled / (N * N)) * 100)} % gefüllt`;
+  if (!drag) $('deadlock').hidden = !isDeadlocked();
   if (!drag && placed === pieces.length && !clashes.length && !solved) win();
 }
 
@@ -276,6 +277,48 @@ function overlaps() {
       if (r) out.push(r);
     }
   return out;
+}
+
+// ---------- Deadlock-Erkennung ----------
+
+const DEADLOCK_AT = 6; // ab so vielen übrigen Teilen wird auf Sackgassen geprüft
+
+// Lässt sich die freie Fläche mit den Teilen `rest` (frei drehbar) exakt füllen?
+// Die erste freie Zelle (zeilenweise) muss die obere linke Ecke eines Teils sein.
+function canFill(occ, rest) {
+  const i = occ.indexOf(0);
+  if (i < 0) return !rest.length;
+  const x = i % N, y = Math.floor(i / N);
+  const seen = new Set();
+  for (const p of rest) {
+    if (seen.has(`${p.w}×${p.h}`)) continue;
+    seen.add(`${p.w}×${p.h}`);
+    const others = rest.filter((q) => q !== p);
+    for (const [w, h] of p.w === p.h ? [[p.w, p.h]] : [[p.w, p.h], [p.h, p.w]]) {
+      if (x + w > N || y + h > N) continue;
+      let free = true;
+      for (let dy = 0; free && dy < h; dy++)
+        for (let dx = 0; dx < w; dx++) if (occ[i + dy * N + dx]) { free = false; break; }
+      if (!free) continue;
+      for (let dy = 0; dy < h; dy++) occ.fill(1, i + dy * N, i + dy * N + w);
+      const ok = canFill(occ, others);
+      for (let dy = 0; dy < h; dy++) occ.fill(0, i + dy * N, i + dy * N + w);
+      if (ok) return true;
+    }
+  }
+  return false;
+}
+
+// true, wenn nur noch wenige Teile übrig sind und das Feld mit ihnen nicht mehr lösbar ist
+function isDeadlocked() {
+  const rest = pieces.filter((p) => p.x === null);
+  if (!rest.length || rest.length > DEADLOCK_AT || overlaps().length) return false;
+  const occ = new Uint8Array(N * N);
+  for (const p of pieces) {
+    if (p.x === null) continue;
+    for (let dy = 0; dy < p.h; dy++) occ.fill(1, (p.y + dy) * N + p.x, (p.y + dy) * N + p.x + p.w);
+  }
+  return !canFill(occ, rest);
 }
 
 function overlapsAt(p, x, y) {

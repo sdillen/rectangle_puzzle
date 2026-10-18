@@ -57,6 +57,8 @@ main { display: flex; flex-wrap: wrap; gap: 24px; justify-content: center; align
 
 #msg { margin: 10px auto 0; padding: 8px 16px; width: fit-content; background: #2e7d4f; border-radius: 6px; font-weight: 600; }
 #msg[hidden] { display: none; }
+#deadlock { margin: 10px auto 0; padding: 8px 16px; width: fit-content; max-width: 90vw; background: #a33a2e; border-radius: 6px; font-weight: 600; }
+#deadlock[hidden] { display: none; }
 .preview.warn { background: rgba(250, 190, 60, .3); outline: 2px solid #fabe3c; }
 .hatch {
   position: absolute; pointer-events: none; z-index: 5;
