@@ -16,7 +16,28 @@ let startTime, timerId, solved;
 
 // ---------- Puzzle-Erzeugung (rekursives Teilen, immer lösbar) ----------
 
-const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+// Seed-basierter Zufall (mulberry32), damit ein Link immer dasselbe Puzzle ergibt
+let random = Math.random;
+function seeded(str) {
+  let h = 1779033703 ^ str.length;
+  for (let i = 0; i < str.length; i++) h = Math.imul(h ^ str.charCodeAt(i), 3432918353), h = (h << 13) | (h >>> 19);
+  let a = h >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+// Seed im URL-Hash: #<level>-<zufall>, z. B. #easy-k3j9x2
+const newSeed = (level) => `${level}-${Math.random().toString(36).slice(2, 8)}`;
+function parseSeed() {
+  const seed = decodeURIComponent(location.hash.slice(1));
+  return LEVELS[seed.split('-')[0]] && seed.includes('-') ? seed : null;
+}
+
+const rnd = (a, b) => a + Math.floor(random() * (b - a + 1));
 
 // Teilt zufällig (nach Fläche gewichtet) so lange Rechtecke, bis die Zielanzahl erreicht ist.
 function generate(n, count, min) {
@@ -24,10 +45,10 @@ function generate(n, count, min) {
   while (rects.length < count) {
     const cand = rects.filter((r) => r.w >= 2 * min || r.h >= 2 * min);
     if (!cand.length) break;
-    let t = Math.random() * cand.reduce((s, r) => s + r.w * r.h, 0);
+    let t = random() * cand.reduce((s, r) => s + r.w * r.h, 0);
     const r = cand.find((q) => (t -= q.w * q.h) < 0) || cand[cand.length - 1];
     const canV = r.w >= 2 * min, canH = r.h >= 2 * min;
-    const vertical = canV && (!canH || Math.random() < r.w / (r.w + r.h));
+    const vertical = canV && (!canH || random() < r.w / (r.w + r.h));
     rects.splice(rects.indexOf(r), 1);
     if (vertical) {
       const c = rnd(min, r.w - min);
@@ -49,7 +70,14 @@ function fitCell() {
   document.documentElement.style.setProperty('--c', CELL + 'px');
 }
 
-function newGame() {
+let seed;
+
+// Neues Spiel; ohne Argument mit frischem Seed im gewählten Level
+function newGame(sd = newSeed($('level').value)) {
+  seed = sd;
+  random = seeded(seed);
+  $('level').value = seed.split('-')[0];
+  history.replaceState(null, '', '#' + seed);
   const lv = LEVELS[$('level').value];
   N = lv.n;
   fitCell();
@@ -61,7 +89,7 @@ function newGame() {
     color: `hsl(${(i * 137.5) % 360} 65% ${60 + (i % 3) * 6}%)`,
   }));
   // zufällig drehen, damit nicht alle Teile gleich ausgerichtet sind
-  pieces.forEach((p) => { if (Math.random() < 0.5) [p.w, p.h] = [p.h, p.w]; });
+  pieces.forEach((p) => { if (random() < 0.5) [p.w, p.h] = [p.h, p.w]; });
   solved = false;
   $('msg').hidden = true;
   $('nameForm').hidden = true;
@@ -359,12 +387,20 @@ window.addEventListener('keydown', (e) => { if (e.key === 'r' || e.key === 'R') 
 window.addEventListener('contextmenu', (e) => { if (drag) { e.preventDefault(); rotate(); } });
 window.addEventListener('wheel', (e) => { if (drag) rotate(); }, { passive: true });
 
-$('newGame').addEventListener('click', newGame);
-$('level').addEventListener('change', newGame);
+$('newGame').addEventListener('click', () => newGame());
+$('level').addEventListener('change', () => newGame());
+window.addEventListener('hashchange', () => { const sd = parseSeed(); if (sd && sd !== seed) newGame(sd); });
+$('share').addEventListener('click', async () => {
+  const url = location.href;
+  try {
+    if (navigator.share) await navigator.share({ title: 'Rechteck-Puzzle', url });
+    else { await navigator.clipboard.writeText(url); $('share').textContent = 'Kopiert!'; setTimeout(() => { $('share').textContent = 'Teilen'; }, 1500); }
+  } catch {}
+});
 $('reset').addEventListener('click', reset);
 $('solve').addEventListener('click', solve);
 $('showScores').addEventListener('click', () => showScores());
 $('closeScores').addEventListener('click', () => { $('scoreModal').hidden = true; });
 $('saveScore').addEventListener('click', saveScore);
 $('name').addEventListener('keydown', (e) => { if (e.key === 'Enter') saveScore(); e.stopPropagation(); });
-newGame();
+newGame(parseSeed() || undefined);
