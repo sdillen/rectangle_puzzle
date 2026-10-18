@@ -186,6 +186,7 @@ function render() {
   if (drag) board.appendChild(drag.preview);
   const filled = pieces.reduce((s, p) => s + (p.x !== null ? p.w * p.h : 0), 0);
   $('info').textContent = `${placed}/${pieces.length} Teile · ${Math.round((filled / (N * N)) * 100)} % gefüllt`;
+  $('fill').style.width = `${Math.round((filled / (N * N)) * 100)}%`;
   if (!drag) $('deadlock').hidden = !isDeadlocked();
   if (!drag && placed === pieces.length && !clashes.length && !solved) win();
 }

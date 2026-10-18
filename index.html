@@ -8,26 +8,37 @@
 </head>
 <body>
   <header>
-    <h1>Rechteck-Puzzle</h1>
+    <div class="top">
+      <h1>Rechteck-Puzzle</h1>
+      <div class="status">
+        <span id="timer">00:00</span>
+        <div class="progress">
+          <div class="track"><div id="fill"></div></div>
+          <span id="info"></span>
+        </div>
+      </div>
+    </div>
     <div class="bar">
-      <span id="info"></span>
-      <span id="timer">00:00</span>
+      <button id="newGame" class="primary">Neues Spiel</button>
       <select id="level" autocomplete="off">
         <option value="easy" selected>Leicht (18×18)</option>
         <option value="medium">Mittel (21×21)</option>
         <option value="hard">Schwer (24×24)</option>
         <option value="expert">Sehr schwer (27×27)</option>
       </select>
-      <button id="newGame">Neues Spiel</button>
-      <button id="share">Teilen</button>
-      <button id="reset">Zurücksetzen</button>
-      <button id="solve">Lösen</button>
-      <button id="showScores">Highscores</button>
+      <span class="spacer"></span>
+      <button id="showScores" class="secondary">Highscores</button>
+      <button id="share" class="secondary">Teilen</button>
+      <button id="reset" class="secondary danger">Zurücksetzen</button>
+      <button id="solve" class="secondary danger">Lösen</button>
     </div>
+    <details class="help" open>
+      <summary>Bedienung</summary>
+      <p class="hint hint-touch">Teil mit dem Finger ziehen (es schwebt über dem Finger) · Teil im Vorrat antippen oder beim Ziehen mit einem zweiten Finger tippen dreht es · Platzierte Teile lassen sich wieder anfassen</p>
+      <p class="hint hint-mouse">Teile per Maus auf das Feld ziehen (Überlappungen werden schraffiert) · <kbd>R</kbd> / Rechtsklick / Mausrad dreht das Teil · Platzierte Teile lassen sich wieder anfassen</p>
+    </details>
     <p id="msg" hidden><span id="msgText"></span> <span id="nameForm" hidden><input id="name" maxlength="20" placeholder="Dein Name"> <button id="saveScore">Speichern</button></span></p>
     <p id="deadlock" hidden>Sackgasse: Mit den übrigen Teilen lässt sich das Feld nicht mehr füllen. Nimm Teile vom Feld, bis es wieder lösbar ist.</p>
-    <p class="hint hint-touch">Teil mit dem Finger ziehen (es schwebt über dem Finger) · Teil im Vorrat antippen oder beim Ziehen mit einem zweiten Finger tippen dreht es · Platzierte Teile lassen sich wieder anfassen</p>
-    <p class="hint hint-mouse">Teile per Maus auf das Feld ziehen (Überlappungen werden schraffiert) · <kbd>R</kbd> / Rechtsklick / Mausrad dreht das Teil · Platzierte Teile lassen sich wieder anfassen</p>
   </header>
   <main>
     <div id="board"></div>
